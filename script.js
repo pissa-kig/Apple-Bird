@@ -21,6 +21,19 @@ bgImg.src = 'imgs/bgnd.png';
 const birdImg = new Image();
 birdImg.src = 'imgs/flappy.png';
 
+// Load Sound Effects
+const sfxPoint = new Audio('sfx/point.wav');
+const sfxWing = new Audio('sfx/wing.wav');
+const sfxHit = new Audio('sfx/hit.wav');
+
+// Helper to reliably play sound effects even during rapid inputs
+function playSFX(audio) {
+  audio.currentTime = 0;
+  audio.play().catch(() => {
+    // Gracefully handle browser autoplay policies if sound is blocked
+  });
+}
+
 // Intro Splash Logic
 window.addEventListener('load', () => {
   setTimeout(() => {
@@ -44,14 +57,14 @@ let frames = 0;
 let score = 0;
 let highScore = localStorage.getItem('apple_bird_highscore') || 0;
 
-// Bird Properties - Retuned for extra-gentle physics
+// Bird Properties
 const bird = {
   x: 50,
   y: 250,
   w: 38,
   h: 38,
-  gravity: 0.11,  // Reduced gravity strength for light, airy falling
-  jump: 4.2,       // Adjusted jump impulse to match the lower gravity
+  gravity: 0.11,
+  jump: 4.2,
   velocity: 0,
   rotation: 0,
   
@@ -59,7 +72,6 @@ const bird = {
     ctx.save();
     ctx.translate(this.x + this.w / 2, this.y + this.h / 2);
     
-    // Rotate bird based on velocity
     if (this.velocity < 0) {
       this.rotation = -0.25;
     } else {
@@ -70,7 +82,6 @@ const bird = {
     if (birdImg.complete && birdImg.naturalWidth !== 0) {
       ctx.drawImage(birdImg, -this.w / 2, -this.h / 2, this.w, this.h);
     } else {
-      // Fallback shape if image fails to load
       ctx.fillStyle = '#ff3b30';
       ctx.beginPath();
       ctx.arc(0, 0, this.w / 2, 0, Math.PI * 2);
@@ -100,6 +111,7 @@ const bird = {
 
   flap() {
     this.velocity = -this.jump;
+    playSFX(sfxWing); // Play wing SFX on flap
   },
 
   reset() {
@@ -109,11 +121,11 @@ const bird = {
   }
 };
 
-// Pipe Obstacles - Tuned for slower movement speed
+// Pipe Obstacles
 const pipes = {
   position: [],
   topGap: 145,
-  dx: 1.3, // Slower pipe movement speed (down from 2.0)
+  dx: 1.3,
 
   draw() {
     for (let i = 0; i < this.position.length; i++) {
@@ -138,7 +150,6 @@ const pipes = {
   update() {
     if (currentState !== GAME_STATE.PLAYING) return;
 
-    // Spawn new pipes every 160 frames (adjusted for slower dx)
     if (frames % 160 === 0) {
       this.position.push({
         x: canvas.width,
@@ -163,10 +174,11 @@ const pipes = {
         triggerGameOver();
       }
 
-      // Score Increase
+      // Score Increase & Sound
       if (p.x + 52 < bird.x && !p.passed) {
         score++;
         p.passed = true;
+        playSFX(sfxPoint); // Play point SFX on score
       }
 
       // Remove offscreen pipes
@@ -241,6 +253,10 @@ function startCountdown() {
 }
 
 function triggerGameOver() {
+  if (currentState !== GAME_STATE.GAMEOVER) {
+    playSFX(sfxHit); // Play hit SFX on collision
+  }
+
   currentState = GAME_STATE.GAMEOVER;
   if (score > highScore) {
     highScore = score;
