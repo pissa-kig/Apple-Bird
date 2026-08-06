@@ -64,7 +64,7 @@ const bird = {
   w: 38,
   h: 38,
   gravity: 0.11,
-  jump: 4.2,
+  jump: 4.7,
   velocity: 0,
   rotation: 0,
   
