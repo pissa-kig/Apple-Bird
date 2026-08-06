@@ -28,7 +28,7 @@ const sfxHit = new Audio('sfx/hit.wav');
 
 let audioUnlocked = false;
 
-// Unlock mobile web audio on first tap
+// Unlock mobile web audio on first user tap
 function unlockAudio() {
   if (audioUnlocked) return;
   [sfxPoint, sfxWing, sfxHit].forEach(audio => {
@@ -46,7 +46,7 @@ function playSFX(audio) {
   audio.play().catch(() => {});
 }
 
-// --- Intro Splash Logic (Mobile Safe) ---
+// --- Intro Splash Logic (Mobile-Safe) ---
 function hideIntro() {
   if (introScreen.classList.contains('fade-out')) return;
   introScreen.classList.add('fade-out');
@@ -75,14 +75,14 @@ let frames = 0;
 let score = 0;
 let highScore = localStorage.getItem('apple_bird_highscore') || 0;
 
-// Bird Properties & Physics
+// --- Bird Properties & Rotation Physics ---
 const bird = {
   x: 50,
   y: 250,
-  w: 38,
+  w: 38, // Square 1:1 ratio to prevent squishing
   h: 38,
-  gravity: 0.22,
-  jump: 5.2,
+  gravity: 0.11,
+  jump: 4.2,
   velocity: 0,
   rotation: 0,
   
@@ -90,6 +90,7 @@ const bird = {
     ctx.save();
     ctx.translate(this.x + this.w / 2, this.y + this.h / 2);
     
+    // Tilt upward on jump, rotate downward when falling
     if (this.velocity < 0) {
       this.rotation = -0.25;
     } else {
@@ -113,13 +114,13 @@ const bird = {
       this.velocity += this.gravity;
       this.y += this.velocity;
 
-      // Floor collision check
-      if (this.y + this.h >= canvas.height - 20) {
-        this.y = canvas.height - 20 - this.h;
+      // Floor collision
+      if (this.y + this.h >= canvas.height - 10) {
+        this.y = canvas.height - 10 - this.h;
         triggerGameOver();
       }
 
-      // Ceiling collision check
+      // Ceiling collision
       if (this.y <= 0) {
         this.y = 0;
         this.velocity = 0;
@@ -139,39 +140,41 @@ const bird = {
   }
 };
 
-// Pipe Obstacles
+// --- Pipe Obstacles (Navy Blue with Red Outline) ---
 const pipes = {
   position: [],
-  topGap: 145,
-  dx: 1.5,
+  w: 52,
+  gap: 145,
+  dx: 1.3,
 
   draw() {
     for (let i = 0; i < this.position.length; i++) {
       let p = this.position[i];
-      let topY = p.y;
-      let bottomY = p.y + this.topGap;
+      let topY = p.top;
+      let bottomY = p.top + this.gap;
 
-      ctx.fillStyle = '#2c3e50';
-      ctx.strokeStyle = '#ff3b30';
+      // Pipe Colors: Navy Blue Fill + Red Outline
+      ctx.fillStyle = '#1b2a4a';   // Navy Blue
+      ctx.strokeStyle = '#ff3b30'; // Red Outline
       ctx.lineWidth = 3;
 
       // Top Pipe
-      ctx.fillRect(p.x, 0, 52, topY);
-      ctx.strokeRect(p.x, 0, 52, topY);
+      ctx.fillRect(p.x, 0, this.w, topY);
+      ctx.strokeRect(p.x, 0, this.w, topY);
 
       // Bottom Pipe
-      ctx.fillRect(p.x, bottomY, 52, canvas.height - bottomY);
-      ctx.strokeRect(p.x, bottomY, 52, canvas.height - bottomY);
+      ctx.fillRect(p.x, bottomY, this.w, canvas.height - bottomY);
+      ctx.strokeRect(p.x, bottomY, this.w, canvas.height - bottomY);
     }
   },
 
   update() {
     if (currentState !== GAME_STATE.PLAYING) return;
 
-    if (frames % 130 === 0) {
+    if (frames % 150 === 0) {
       this.position.push({
         x: canvas.width,
-        y: Math.floor(Math.random() * (220 - 50 + 1)) + 50,
+        top: Math.floor(Math.random() * (canvas.height - this.gap - 120)) + 50,
         passed: false
       });
     }
@@ -180,27 +183,27 @@ const pipes = {
       let p = this.position[i];
       p.x -= this.dx;
 
-      let topPipeBottom = p.y;
-      let bottomPipeTop = p.y + this.topGap;
+      let topPipeBottom = p.top;
+      let bottomPipeTop = p.top + this.gap;
 
       // Collision Detection
       if (
         bird.x + bird.w > p.x &&
-        bird.x < p.x + 52 &&
+        bird.x < p.x + this.w &&
         (bird.y < topPipeBottom || bird.y + bird.h > bottomPipeTop)
       ) {
         triggerGameOver();
       }
 
       // Score Increase
-      if (p.x + 52 < bird.x && !p.passed) {
+      if (p.x + this.w < bird.x && !p.passed) {
         score++;
         p.passed = true;
         playSFX(sfxPoint);
       }
 
       // Remove offscreen pipes
-      if (p.x + 52 <= 0) {
+      if (p.x + this.w <= 0) {
         this.position.shift();
         i--;
       }
@@ -212,20 +215,16 @@ const pipes = {
   }
 };
 
-// Background Rendering
+// --- Background & Score Rendering ---
 function drawBackground() {
   if (bgImg.complete && bgImg.naturalWidth !== 0) {
     ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
   } else {
-    let gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, '#1a1c29');
-    gradient.addColorStop(1, '#0f1016');
-    ctx.fillStyle = gradient;
+    ctx.fillStyle = '#121216';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 }
 
-// Live Score
 function drawScore() {
   if (currentState === GAME_STATE.PLAYING) {
     ctx.fillStyle = '#ffffff';
@@ -239,7 +238,7 @@ function drawScore() {
   }
 }
 
-// Flow Handlers
+// --- Game Control Flow ---
 function startCountdown() {
   currentState = GAME_STATE.COUNTDOWN;
   uiOverlay.classList.add('hidden');
@@ -289,7 +288,7 @@ function handleInput(e) {
   }
 }
 
-// Global Mobile Touch & Desktop Key Listeners
+// --- Inputs ---
 window.addEventListener('keydown', (e) => {
   if (e.code === 'Space') {
     e.preventDefault();
@@ -322,7 +321,7 @@ restartBtn.addEventListener('click', (e) => {
   startCountdown();
 });
 
-// Core Loop
+// --- Main Render Loop ---
 function loop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
