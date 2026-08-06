@@ -81,8 +81,8 @@ const bird = {
   y: 250,
   w: 38, // Square 1:1 ratio to prevent squishing
   h: 38,
-  gravity: 0.11,
-  jump: 4.2,
+  gravity: 0.08,
+  jump: 3.5,
   velocity: 0,
   rotation: 0,
   
@@ -145,7 +145,7 @@ const pipes = {
   position: [],
   w: 52,
   gap: 145,
-  dx: 1.3,
+  dx: 1.0,
 
   draw() {
     for (let i = 0; i < this.position.length; i++) {
