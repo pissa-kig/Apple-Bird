@@ -169,6 +169,7 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 16px;
+  max-width: 85%;
 }
 
 .overlay-card.hidden {
@@ -202,9 +203,90 @@ body {
   transform: scale(0.95);
 }
 
-@media (max-width: 480px) {
+/* iPad / Tablet Responsiveness */
+@media (max-width: 1024px) {
+  .intro-logo {
+    max-width: 180px;
+    max-height: 180px;
+  }
+
+  .intro-text {
+    font-size: 1rem;
+  }
+
+  .game-title {
+    font-size: 1.8rem;
+  }
+
+  .game-subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+  }
+
+  .canvas-wrapper {
+    width: 350px;
+    height: 525px;
+  }
+
+  .overlay-card {
+    padding: 24px 20px;
+    gap: 12px;
+  }
+
+  .overlay-card h2 {
+    font-size: 1.5rem;
+  }
+
+  .overlay-card p {
+    font-size: 0.95rem;
+  }
+
+  .btn {
+    padding: 10px 24px;
+    font-size: 1rem;
+  }
+
+  #countdown-text {
+    font-size: 4rem;
+  }
+}
+
+/* Mobile & Short Screen Responsiveness */
+@media (max-width: 480px), (max-height: 700px) {
+  .game-container {
+    padding: 8px;
+    gap: 4px;
+  }
+
+  .game-title {
+    font-size: 1.5rem;
+  }
+
+  .game-subtitle {
+    font-size: 0.75rem;
+    margin-bottom: 2px;
+  }
+
   .canvas-wrapper {
     width: 320px;
     height: 480px;
+  }
+
+  .overlay-card {
+    padding: 20px 16px;
+    gap: 10px;
+  }
+
+  .overlay-card h2 {
+    font-size: 1.3rem;
+  }
+
+  .btn {
+    padding: 8px 20px;
+    font-size: 0.9rem;
+  }
+
+  #countdown-text {
+    font-size: 3.5rem;
   }
 }
